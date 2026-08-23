@@ -1,31 +1,1617 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ultimate Online Mock</title>
-<style>
-body{font-family:Arial;margin:0;background:#f3f6fb;color:#172033}.wrap{max-width:900px;margin:auto;padding:18px}.card{background:white;padding:20px;border-radius:15px;margin:15px 0;box-shadow:0 8px 25px #0001}input,button,select{width:100%;padding:12px;margin:6px 0;border-radius:9px;border:1px solid #ccd4df;box-sizing:border-box}button{background:#2563eb;color:#fff;border:0;font-weight:bold;cursor:pointer}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.option{padding:12px;border:1px solid #ccd4df;border-radius:9px;margin:8px 0;cursor:pointer}.hidden{display:none}.timer{font-size:25px;color:#dc2626;font-weight:bold}.rank{padding:10px;border-bottom:1px solid #ddd}.danger{background:#dc2626}.muted{color:#667085}@media(max-width:600px){.grid{grid-template-columns:1fr}}</style></head>
-<body><div class="wrap">
-<h1>⚡ Ultimate Online Mock</h1>
-<div id="auth" class="card"><h2>Login / Register</h2><div class="grid"><div><h3>Login</h3><input id="le" placeholder="Email"><input id="lp" type="password" placeholder="Password"><button onclick="login()">Login</button></div><div><h3>Register</h3><input id="rn" placeholder="Name"><input id="re" placeholder="Email"><input id="rp" type="password" placeholder="Password (6+)"><button onclick="register()">Create Account</button></div></div><p id="msg"></p></div>
-<div id="app" class="hidden"><div class="card"><b id="who"></b><button onclick="logout()">Logout</button></div>
-<div id="home"><div class="card"><h2>Start Exam</h2><input id="title" value="Online Mock Test"><div class="grid"><input id="n" type="number" value="10" min="1"><input id="mins" type="number" value="15" min="1"></div><button onclick="start()">🚀 Start</button></div><div class="card"><h2>🏆 Live Leaderboard</h2><div id="lb"></div></div><div class="card"><h2>My History</h2><div id="hist"></div></div><div id="admin" class="card hidden"><h2>🔐 Admin Panel</h2><p id="astats"></p><textarea id="bulk" rows="8" placeholder='Paste JSON array of questions here'></textarea><button onclick="bulkImport()">Bulk Import JSON</button></div></div>
-<div id="exam" class="hidden"><div class="card"><div class="timer" id="timer"></div><p id="meta"></p><h2 id="q"></h2><div id="opts"></div><button onclick="prev()">Previous</button><button onclick="next()">Next</button><button class="danger" onclick="submitExam()">Submit</button></div></div>
-<div id="result" class="hidden"><div class="card"><h2>Result</h2><h1 id="score"></h1><p id="detail"></p><button onclick="goHome()">Dashboard</button></div></div></div></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>UltimateFREE Online Mock, by MD YUSUF</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f3f6fb;
+      color: #172033;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      margin: 15px 0;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.94;
+    }
+
+    button.secondary {
+      background: #475569;
+    }
+
+    button.success {
+      background: #16a34a;
+    }
+
+    button.danger {
+      background: #dc2626;
+    }
+
+    button.warning {
+      background: #d97706;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .muted {
+      color: #64748b;
+    }
+
+    .error {
+      color: #b91c1c;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .success-text {
+      color: #15803d;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .topbar button {
+      width: auto;
+      min-width: 130px;
+    }
+
+    .timer {
+      font-size: 24px;
+      font-weight: bold;
+      color: #dc2626;
+      text-align: right;
+    }
+
+    .progress {
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #2563eb;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .question-title {
+      font-size: 22px;
+      line-height: 1.45;
+    }
+
+    .option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #fff;
+      color: #172033;
+      border: 2px solid #cbd5e1;
+      margin: 10px 0;
+      padding: 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .option:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .option.selected {
+      border-color: #2563eb;
+      background: #dbeafe;
+      color: #1e3a8a;
+    }
+
+    .option.correct {
+      border-color: #16a34a;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .option.wrong {
+      border-color: #dc2626;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .option-label {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .rank,
+    .history-row {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .rank:last-child,
+    .history-row:last-child {
+      border-bottom: 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 15px 0;
+    }
+
+    .stat {
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .admin-tools {
+      display: grid;
+      gap: 15px;
+    }
+
+    .json-help {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+
+    .result-box {
+      text-align: center;
+      padding: 25px;
+    }
+
+    .score {
+      font-size: 50px;
+      font-weight: 800;
+      margin: 10px 0;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .result-item {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .grid,
+      .stats,
+      .result-grid,
+      .nav-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .timer {
+        text-align: left;
+      }
+
+      .question-title {
+        font-size: 19px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- APP TITLE -->
+    <div class="card">
+      <h1>⚡ Ultimate Online Mock</h1>
+      <p class="muted">
+        Online examination, student accounts and leaderboard
+      </p>
+    </div>
+
+    <!-- AUTH -->
+    <div id="auth" class="card">
+      <h2>Login / Register</h2>
+
+      <div class="grid">
+
+        <!-- LOGIN -->
+        <div>
+          <h3>Login</h3>
+
+          <input
+            id="le"
+            type="email"
+            placeholder="Email"
+            autocomplete="email"
+          />
+
+          <input
+            id="lp"
+            type="password"
+            placeholder="Password"
+            autocomplete="current-password"
+          />
+
+          <button onclick="login()">
+            Login
+          </button>
+        </div>
+
+        <!-- REGISTER -->
+        <div>
+          <h3>Register</h3>
+
+          <input
+            id="rn"
+            placeholder="Name"
+            autocomplete="name"
+          />
+
+          <input
+            id="re"
+            type="email"
+            placeholder="Email"
+            autocomplete="email"
+          />
+
+          <input
+            id="rp"
+            type="password"
+            placeholder="Password (6+)"
+            autocomplete="new-password"
+          />
+
+          <button onclick="register()">
+            Create Account
+          </button>
+        </div>
+
+      </div>
+
+      <p id="msg"></p>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="hidden">
+
+      <!-- USER BAR -->
+      <div class="card">
+        <div class="topbar">
+          <div>
+            <strong id="who"></strong>
+            <span id="roleBadge" class="badge"></span>
+          </div>
+
+          <button
+            class="secondary"
+            onclick="logout()"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- HOME -->
+      <div id="home">
+
+        <!-- START EXAM -->
+        <div class="card">
+          <h2>🚀 Start Exam</h2>
+
+          <input
+            id="title"
+            value="Online Mock Test"
+            placeholder="Exam title"
+          />
+
+          <div class="grid">
+            <div>
+              <label>Questions</label>
+              <input
+                id="n"
+                type="number"
+                value="10"
+                min="1"
+              />
+            </div>
+
+            <div>
+              <label>Time (minutes)</label>
+              <input
+                id="mins"
+                type="number"
+                value="15"
+                min="1"
+              />
+            </div>
+          </div>
+
+          <button
+            class="success"
+            onclick="start()"
+          >
+            Start Exam
+          </button>
+
+          <p
+            id="questionStatus"
+            class="muted"
+          >
+            Checking questions...
+          </p>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div class="card">
+          <h2>🏆 Live Leaderboard</h2>
+
+          <div id="lb">
+            <div class="loading">
+              Loading leaderboard...
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY -->
+        <div class="card">
+          <h2>📊 My History</h2>
+
+          <div id="hist">
+            <div class="loading">
+              Loading history...
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN -->
+        <div
+          id="admin"
+          class="card hidden"
+        >
+          <h2>🔐 Admin Panel</h2>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-number" id="statQuestions">0</div>
+              <div>Questions</div>
+            </div>
+
+            <div class="stat">
+              <div class="stat-number" id="statUsers">0</div>
+              <div>Students</div>
+            </div>
+
+            <div class="stat">
+              <div class="stat-number" id="statTests">0</div>
+              <div>Tests</div>
+            </div>
+          </div>
+
+          <div class="admin-tools">
+
+            <div>
+              <h3>Bulk Import Questions</h3>
+
+              <p class="muted">
+                50–100 questions एक साथ JSON के रूप में डाल सकते हैं।
+              </p>
+
+              <textarea
+                id="bulk"
+                placeholder="Paste JSON array here..."
+              ></textarea>
+
+              <button
+                class="success"
+                onclick="bulkImport()"
+              >
+                Import Questions
+              </button>
+
+              <div class="json-help">
+Example:
+
+[
+  {
+    "question": "भारत की राजधानी क्या है?",
+    "options": [
+      "मुंबई",
+      "नई दिल्ली",
+      "कोलकाता",
+      "चेन्नई"
+    ],
+    "answer": 1,
+    "subject": "General Knowledge",
+    "difficulty": "Easy",
+    "explanation": "भारत की राजधानी नई दिल्ली है।"
+  }
+]
+
+answer: 0 = A
+answer: 1 = B
+answer: 2 = C
+answer: 3 = D
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EXAM -->
+      <div
+        id="exam"
+        class="hidden"
+      >
+        <div class="card">
+
+          <div class="topbar">
+            <strong id="meta"></strong>
+            <div
+              class="timer"
+              id="timer"
+            >
+              00:00
+            </div>
+          </div>
+
+          <div class="progress">
+            <div
+              id="progressBar"
+              class="progress-bar"
+            ></div>
+          </div>
+
+          <h2
+            id="q"
+            class="question-title"
+          ></h2>
+
+          <div id="opts"></div>
+
+          <div class="nav-buttons">
+
+            <button
+              class="secondary"
+              onclick="prev()"
+            >
+              Previous
+            </button>
+
+            <button
+              onclick="next()"
+            >
+              Next
+            </button>
+
+            <button
+              class="danger"
+              onclick="submitExam()"
+            >
+              Submit
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div
+        id="result"
+        class="hidden"
+      >
+        <div class="card result-box">
+
+          <h2>🎯 Exam Result</h2>
+
+          <div
+            id="score"
+            class="score"
+          >
+            0%
+          </div>
+
+          <div
+            id="detail"
+            class="muted"
+          ></div>
+
+          <div class="result-grid">
+
+            <div class="result-item">
+              <strong id="resultCorrect">0</strong>
+              <br />
+              Correct
+            </div>
+
+            <div class="result-item">
+              <strong id="resultWrong">0</strong>
+              <br />
+              Wrong
+            </div>
+
+            <div class="result-item">
+              <strong id="resultUnanswered">0</strong>
+              <br />
+              Unanswered
+            </div>
+
+          </div>
+
+          <button
+            onclick="goHome()"
+          >
+            Back to Dashboard
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
 <script>
-let token=localStorage.getItem("umt_token"),user=JSON.parse(localStorage.getItem("umt_user")||"null"),items=[],ans=[],idx=0,timer=null,seconds=0,examTitle="";
-const $=id=>document.getElementById(id);
-function api(url,opt={}){opt.headers=Object.assign({"Content-Type":"application/json"},opt.headers||{},token?{Authorization:"Bearer "+token}:{});return fetch(url,opt).then(async r=>{let d=await r.json();if(!r.ok)throw Error(d.error||"Request failed");return d})}
-function setMsg(x){$("msg").textContent=x}
-async function login(){try{let d=await api("/api/auth/login",{method:"POST",body:JSON.stringify({email:$("le").value,password:$("lp").value})});setSession(d)}catch(e){setMsg(e.message)}}
-async function register(){try{let d=await api("/api/auth/register",{method:"POST",body:JSON.stringify({name:$("rn").value,email:$("re").value,password:$("rp").value})});setSession(d)}catch(e){setMsg(e.message)}}
-function setSession(d){token=d.token;user=d.user;localStorage.setItem("umt_token",token);localStorage.setItem("umt_user",JSON.stringify(user));boot()}
-function logout(){localStorage.removeItem("umt_token");localStorage.removeItem("umt_user");location.reload()}
-async function boot(){if(!token)return;try{await api("/api/me");$("auth").classList.add("hidden");$("app").classList.remove("hidden");$("who").textContent=`👤 ${user.name} (${user.role})`;if(user.role==="admin")$("admin").classList.remove("hidden");loadHome()}catch{logout()}}
-async function loadHome(){let [lb,h]=await Promise.all([api("/api/leaderboard"),api("/api/my-results")]);$("lb").innerHTML=lb.map((x,i)=>`<div class="rank">#${i+1} <b>${x.name}</b> — ${x.percentage}% (${x.tests} tests)</div>`).join("")||"No results";$("hist").innerHTML=h.map(x=>`<div class="rank">${x.exam_title}: <b>${x.percentage}%</b> — ${new Date(x.created_at).toLocaleString()}</div>`).join("")||"No tests";if(user.role==="admin"){let s=await api("/api/admin/stats");$("astats").textContent=`Questions: ${s.questions} | Students: ${s.users} | Tests: ${s.tests}`}}
-async function start(){let q=await api("/api/questions");let n=Math.min(Number($("n").value)||10,q.length);q.sort(()=>Math.random()-0.5);items=q.slice(0,n);ans=Array(n).fill(null);idx=0;examTitle=$("title").value||"Mock Test";seconds=(Number($("mins").value)||15)*60;$("home").classList.add("hidden");$("exam").classList.remove("hidden");render();clearInterval(timer);timer=setInterval(()=>{seconds--;clock();if(seconds<=0)submitExam()},1000);clock()}
-function clock(){$("timer").textContent=`Time: ${String(Math.floor(seconds/60)).padStart(2,"0")}:${String(seconds%60).padStart(2,"0")}`}
-function render(){let x=items[idx];$("meta").textContent=`Question ${idx+1}/${items.length}`;$("q").textContent=x.question;$("opts").innerHTML=[x.optionA,x.optionB,x.optionC,x.optionD].map((o,i)=>`<div class="option" onclick="ans[${idx}]=${i};render()"><b>${"ABCD"[i]}.</b> ${o}</div>`).join("")}
-function prev(){if(idx>0){idx--;render()}}function next(){if(idx<items.length-1){idx++;render()}else submitExam()}
-async function submitExam(){clearInterval(timer);let c=0,w=0,u=0;items.forEach((x,i)=>{if(ans[i]===null)u++;else if(ans[i]===x.answer)c++;else w++});let pct=Math.round(c/items.length*100);await api("/api/results",{method:"POST",body:JSON.stringify({examTitle,correct:c,wrong:w,unanswered:u,total:items.length,rawScore:c,percentage:pct})});$("exam").classList.add("hidden");$("result").classList.remove("hidden");$("score").textContent=pct+"%";$("detail").textContent=`Correct: ${c} | Wrong: ${w} | Unanswered: ${u}`;loadHome()}
-function goHome(){$("result").classList.add("hidden");$("home").classList.remove("hidden");loadHome()}
-async function bulkImport(){try{let q=JSON.parse($("bulk").value);let d=await api("/api/questions/bulk",{method:"POST",body:JSON.stringify({questions:q})});alert(`Imported ${d.inserted} questions`);loadHome()}catch(e){alert(e.message)}}
-boot();
-</script></body></html>
+  let token = localStorage.getItem("umt_token");
+  let user = JSON.parse(
+    localStorage.getItem("umt_user") || "null"
+  );
+
+  let items = [];
+  let answers = [];
+  let currentIndex = 0;
+  let timer = null;
+  let seconds = 0;
+  let examTitle = "";
+
+  const $ = (id) =>
+    document.getElementById(id);
+
+  /* =========================
+     API HELPER
+  ========================= */
+
+  async function api(url, options = {}) {
+    const headers = Object.assign(
+      {
+        "Content-Type": "application/json"
+      },
+      options.headers || {},
+      token
+        ? {
+            Authorization: "Bearer " + token
+          }
+        : {}
+    );
+
+    const response = await fetch(url, {
+      ...options,
+      headers
+    });
+
+    let data = null;
+
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        data.message ||
+        "Request failed"
+      );
+    }
+
+    return data;
+  }
+
+  /* =========================
+     MESSAGE
+  ========================= */
+
+  function showMessage(message, type = "error") {
+    const el = $("msg");
+
+    el.textContent = message;
+
+    el.className =
+      type === "success"
+        ? "success-text"
+        : "error";
+  }
+
+  /* =========================
+     LOGIN
+  ========================= */
+
+  async function login() {
+    const email =
+      $("le").value.trim();
+
+    const password =
+      $("lp").value;
+
+    if (!email || !password) {
+      showMessage(
+        "Email और password दोनों भरें।"
+      );
+      return;
+    }
+
+    try {
+      const data = await api(
+        "/api/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email,
+            password
+          })
+        }
+      );
+
+      setSession(data);
+
+    } catch (error) {
+      showMessage(
+        "Login failed: " +
+        error.message
+      );
+    }
+  }
+
+  /* =========================
+     REGISTER
+  ========================= */
+
+  async function register() {
+    const name =
+      $("rn").value.trim();
+
+    const email =
+      $("re").value.trim();
+
+    const password =
+      $("rp").value;
+
+    if (!name || !email || !password) {
+      showMessage(
+        "सभी registration fields भरें।"
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      showMessage(
+        "Password कम से कम 6 characters का होना चाहिए।"
+      );
+      return;
+    }
+
+    try {
+      const data = await api(
+        "/api/auth/register",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            email,
+            password
+          })
+        }
+      );
+
+      setSession(data);
+
+    } catch (error) {
+      showMessage(
+        "Registration failed: " +
+        error.message
+      );
+    }
+  }
+
+  /* =========================
+     SESSION
+  ========================= */
+
+  function setSession(data) {
+    token = data.token;
+    user = data.user;
+
+    localStorage.setItem(
+      "umt_token",
+      token
+    );
+
+    localStorage.setItem(
+      "umt_user",
+      JSON.stringify(user)
+    );
+
+    boot();
+  }
+
+  function logout() {
+    localStorage.removeItem(
+      "umt_token"
+    );
+
+    localStorage.removeItem(
+      "umt_user"
+    );
+
+    token = null;
+    user = null;
+
+    location.reload();
+  }
+
+  /* =========================
+     BOOT
+  ========================= */
+
+  async function boot() {
+    if (!token || !user) {
+      return;
+    }
+
+    try {
+      const me = await api(
+        "/api/me"
+      );
+
+      if (me.user) {
+        user = me.user;
+
+        localStorage.setItem(
+          "umt_user",
+          JSON.stringify(user)
+        );
+      }
+
+      $("auth").classList.add(
+        "hidden"
+      );
+
+      $("app").classList.remove(
+        "hidden"
+      );
+
+      $("who").textContent =
+        `👤 ${user.name}`;
+
+      $("roleBadge").textContent =
+        user.role || "student";
+
+      if (user.role === "admin") {
+        $("admin").classList.remove(
+          "hidden"
+        );
+      }
+
+      await loadHome();
+
+    } catch (error) {
+      console.error(error);
+
+      logout();
+    }
+  }
+
+  /* =========================
+     LOAD HOME
+  ========================= */
+
+  async function loadHome() {
+    try {
+      const [leaderboard, history, questions] =
+        await Promise.all([
+          api("/api/leaderboard"),
+          api("/api/my-results"),
+          api("/api/questions")
+        ]);
+
+      renderLeaderboard(
+        leaderboard
+      );
+
+      renderHistory(
+        history
+      );
+
+      $("questionStatus").textContent =
+        `${questions.length} question(s) available.`;
+
+      if (user.role === "admin") {
+        await loadAdminStats();
+      }
+
+    } catch (error) {
+      console.error(error);
+
+      $("questionStatus").textContent =
+        "Questions load नहीं हो पाए: " +
+        error.message;
+    }
+  }
+
+  /* =========================
+     LEADERBOARD
+  ========================= */
+
+  function renderLeaderboard(data) {
+    if (!data || !data.length) {
+      $("lb").innerHTML =
+        `<p class="muted">अभी कोई result नहीं है।</p>`;
+
+      return;
+    }
+
+    $("lb").innerHTML =
+      data
+        .map(
+          (x, i) => `
+            <div class="rank">
+              <b>#${i + 1}</b>
+              ${escapeHtml(x.name || "Student")}
+              —
+              <strong>${Number(x.percentage || 0)}%</strong>
+              (${Number(x.tests || 0)} tests)
+            </div>
+          `
+        )
+        .join("");
+  }
+
+  /* =========================
+     HISTORY
+  ========================= */
+
+  function renderHistory(data) {
+    if (!data || !data.length) {
+      $("hist").innerHTML =
+        `<p class="muted">अभी कोई test history नहीं है।</p>`;
+
+      return;
+    }
+
+    $("hist").innerHTML =
+      data
+        .map(
+          x => `
+            <div class="history-row">
+              <strong>
+                ${escapeHtml(
+                  x.exam_title || "Mock Test"
+                )}
+              </strong>
+
+              <br />
+
+              <span>
+                ${Number(x.percentage || 0)}%
+              </span>
+
+              <span class="muted">
+                —
+                ${x.created_at
+                  ? new Date(
+                      x.created_at
+                    ).toLocaleString()
+                  : ""}
+              </span>
+            </div>
+          `
+        )
+        .join("");
+  }
+
+  /* =========================
+     ADMIN STATS
+  ========================= */
+
+  async function loadAdminStats() {
+    try {
+      const stats =
+        await api(
+          "/api/admin/stats"
+        );
+
+      $("statQuestions").textContent =
+        Number(stats.questions || 0);
+
+      $("statUsers").textContent =
+        Number(stats.users || 0);
+
+      $("statTests").textContent =
+        Number(stats.tests || 0);
+
+    } catch (error) {
+      console.error(
+        "Admin stats error:",
+        error
+      );
+    }
+  }
+
+  /* =========================
+     QUESTIONS
+  ========================= */
+
+  function normalizeQuestion(q) {
+    return {
+      id: q.id,
+
+      question:
+        q.question || "",
+
+      optionA:
+        q.optionA ??
+        q.option_a ??
+        "",
+
+      optionB:
+        q.optionB ??
+        q.option_b ??
+        "",
+
+      optionC:
+        q.optionC ??
+        q.option_c ??
+        "",
+
+      optionD:
+        q.optionD ??
+        q.option_d ??
+        "",
+
+      answer:
+        Number(q.answer),
+
+      subject:
+        q.subject || "General",
+
+      difficulty:
+        q.difficulty || "Medium",
+
+      explanation:
+        q.explanation || ""
+    };
+  }
+
+  /* =========================
+     START EXAM
+  ========================= */
+
+  async function start() {
+    try {
+      const data =
+        await api("/api/questions");
+
+      if (!data.length) {
+        alert(
+          "Database में अभी कोई question नहीं है।"
+        );
+
+        return;
+      }
+
+      let count =
+        Number($("n").value) || 10;
+
+      count = Math.max(
+        1,
+        Math.min(
+          count,
+          data.length
+        )
+      );
+
+      items = data
+        .map(normalizeQuestion)
+        .sort(
+          () => Math.random() - 0.5
+        )
+        .slice(0, count);
+
+      answers =
+        Array(items.length).fill(
+          null
+        );
+
+      currentIndex = 0;
+
+      examTitle =
+        $("title").value.trim() ||
+        "Mock Test";
+
+      const minutes =
+        Number($("mins").value) || 15;
+
+      seconds =
+        Math.max(1, minutes) * 60;
+
+      $("home").classList.add(
+        "hidden"
+      );
+
+      $("result").classList.add(
+        "hidden"
+      );
+
+      $("exam").classList.remove(
+        "hidden"
+      );
+
+      renderQuestion();
+
+      clearInterval(timer);
+
+      timer = setInterval(
+        () => {
+          seconds--;
+
+          updateClock();
+
+          if (seconds <= 0) {
+            clearInterval(timer);
+
+            submitExam();
+          }
+        },
+        1000
+      );
+
+      updateClock();
+
+    } catch (error) {
+      alert(
+        "Exam start failed: " +
+        error.message
+      );
+    }
+  }
+
+  /* =========================
+     CLOCK
+  ========================= */
+
+  function updateClock() {
+    const minutes =
+      Math.floor(seconds / 60);
+
+    const secs =
+      seconds % 60;
+
+    $("timer").textContent =
+      `Time: ${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+
+  /* =========================
+     RENDER QUESTION
+  ========================= */
+
+  function renderQuestion() {
+    if (!items.length) {
+      return;
+    }
+
+    const q =
+      items[currentIndex];
+
+    $("meta").textContent =
+      `Question ${currentIndex + 1} / ${items.length}`;
+
+    $("q").textContent =
+      q.question;
+
+    const progress =
+      ((currentIndex + 1) /
+        items.length) *
+      100;
+
+    $("progressBar").style.width =
+      `${progress}%`;
+
+    const options = [
+      q.optionA,
+      q.optionB,
+      q.optionC,
+      q.optionD
+    ];
+
+    $("opts").innerHTML =
+      options
+        .map(
+          (option, index) => {
+            if (!option) {
+              return "";
+            }
+
+            const selected =
+              answers[currentIndex] ===
+              index;
+
+            return `
+              <button
+                type="button"
+                class="option ${
+                  selected
+                    ? "selected"
+                    : ""
+                }"
+                onclick="selectOption(${index})"
+              >
+                <span class="option-label">
+                  ${"ABCD"[index]}.
+                </span>
+
+                ${escapeHtml(option)}
+              </button>
+            `;
+          }
+        )
+        .join("");
+  }
+
+  /* =========================
+     SELECT OPTION
+  ========================= */
+
+  function selectOption(index) {
+    answers[currentIndex] =
+      index;
+
+    renderQuestion();
+  }
+
+  /* =========================
+     NAVIGATION
+  ========================= */
+
+  function prev() {
+    if (currentIndex > 0) {
+      currentIndex--;
+
+      renderQuestion();
+    }
+  }
+
+  function next() {
+    if (
+      currentIndex <
+      items.length - 1
+    ) {
+      currentIndex++;
+
+      renderQuestion();
+
+      return;
+    }
+
+    submitExam();
+  }
+
+  /* =========================
+     ANSWER NORMALIZATION
+  ========================= */
+
+  function isCorrectAnswer(
+    selected,
+    correct
+  ) {
+    if (
+      selected === null ||
+      selected === undefined
+    ) {
+      return false;
+    }
+
+    const answer =
+      Number(correct);
+
+    /*
+      Our frontend uses:
+      A = 0
+      B = 1
+      C = 2
+      D = 3
+
+      The imported JSON should
+      therefore also use 0-3.
+    */
+
+    return selected === answer;
+  }
+
+  /* =========================
+     SUBMIT
+  ========================= */
+
+  async function submitExam() {
+    if (!items.length) {
+      return;
+    }
+
+    clearInterval(timer);
+
+    let correct = 0;
+    let wrong = 0;
+    let unanswered = 0;
+
+    items.forEach(
+      (q, i) => {
+        const selected =
+          answers[i];
+
+        if (
+          selected === null ||
+          selected === undefined
+        ) {
+          unanswered++;
+
+          return;
+        }
+
+        if (
+          isCorrectAnswer(
+            selected,
+            q.answer
+          )
+        ) {
+          correct++;
+        } else {
+          wrong++;
+        }
+      }
+    );
+
+    const percentage =
+      Math.round(
+        (correct /
+          items.length) *
+          100
+      );
+
+    try {
+      await api(
+        "/api/results",
+        {
+          method: "POST",
+
+          body: JSON.stringify({
+            examTitle,
+
+            correct,
+
+            wrong,
+
+            unanswered,
+
+            total:
+              items.length,
+
+            rawScore:
+              correct,
+
+            percentage
+          })
+        }
+      );
+
+      $("exam").classList.add(
+        "hidden"
+      );
+
+      $("result").classList.remove(
+        "hidden"
+      );
+
+      $("score").textContent =
+        `${percentage}%`;
+
+      $("detail").textContent =
+        `Total Questions: ${items.length}`;
+
+      $("resultCorrect").textContent =
+        correct;
+
+      $("resultWrong").textContent =
+        wrong;
+
+      $("resultUnanswered").textContent =
+        unanswered;
+
+      await loadHome();
+
+    } catch (error) {
+      alert(
+        "Result save नहीं हुआ: " +
+        error.message
+      );
+    }
+  }
+
+  /* =========================
+     HOME
+  ========================= */
+
+  async function goHome() {
+    $("result").classList.add(
+      "hidden"
+    );
+
+    $("exam").classList.add(
+      "hidden"
+    );
+
+    $("home").classList.remove(
+      "hidden"
+    );
+
+    await loadHome();
+  }
+
+  /* =========================
+     BULK IMPORT
+  ========================= */
+
+  async function bulkImport() {
+    const raw =
+      $("bulk").value.trim();
+
+    if (!raw) {
+      alert(
+        "पहले JSON paste करो।"
+      );
+
+      return;
+    }
+
+    let questions;
+
+    try {
+      questions =
+        JSON.parse(raw);
+
+    } catch (error) {
+      alert(
+        "JSON गलत है या अधूरा है.\n\n" +
+        error.message
+      );
+
+      return;
+    }
+
+    if (!Array.isArray(questions)) {
+      alert(
+        "JSON की शुरुआत [ और अंत ] से होनी चाहिए।"
+      );
+
+      return;
+    }
+
+    if (!questions.length) {
+      alert(
+        "Question list खाली है।"
+      );
+
+      return;
+    }
+
+    try {
+      const normalized =
+        questions.map(
+          q => ({
+            question:
+              q.question,
+
+            options:
+              q.options || [
+                q.optionA ??
+                  q.option_a ??
+                  "",
+                q.optionB ??
+                  q.option_b ??
+                  "",
+                q.optionC ??
+                  q.option_c ??
+                  "",
+                q.optionD ??
+                  q.option_d ??
+                  ""
+              ],
+
+            answer:
+              Number(q.answer),
+
+            subject:
+              q.subject ||
+              "General",
+
+            difficulty:
+              q.difficulty ||
+              "Medium",
+
+            explanation:
+              q.explanation ||
+              ""
+          })
+        );
+
+      const result =
+        await api(
+          "/api/questions/bulk",
+          {
+            method: "POST",
+
+            body:
+              JSON.stringify({
+                questions:
+                  normalized
+              })
+          }
+        );
+
+      alert(
+        `Successfully imported ${result.inserted} question(s).`
+      );
+
+      $("bulk").value = "";
+
+      await loadHome();
+
+    } catch (error) {
+      alert(
+        "Import failed: " +
+        error.message
+      );
+    }
+  }
+
+  /* =========================
+     HTML ESCAPE
+  ========================= */
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  /* =========================
+     START APP
+  ========================= */
+
+  boot();
+</script>
+</body>
+</html>
