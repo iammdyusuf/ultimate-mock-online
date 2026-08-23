@@ -107,5 +107,5 @@ app.get("/api/admin/stats",auth,admin,async(req,res)=>{
   res.json({questions:q.rows[0].n,users:u.rows[0].n,tests:t.rows[0].n});
 });
 
-app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+app.get("/*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 app.listen(process.env.PORT||3000,()=>console.log("Online Mock server running"));
