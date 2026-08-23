@@ -42,12 +42,38 @@ app.post("/api/auth/login",async(req,res)=>{
 app.get("/api/me",auth,(req,res)=>res.json({user:req.user}));
 
 app.get("/api/questions",auth,async(req,res)=>{
-  const {subject,difficulty}=req.query;
-  const r=await pool.query(
-    "select id,question,option_a as \"optionA\",option_b as \"optionB\",option_c as \"optionC\",option_d as \"optionD\",subject,difficulty,explanation from questions where ($1='' or subject=$1) and ($2='' or difficulty=$2) order by id",
-    [subject||"",difficulty||""]
-  );
-  res.json(r.rows);
+  try{
+    const {subject="",difficulty=""}=req.query;
+
+    const r=await pool.query(
+      `
+      SELECT
+        id,
+        question,
+        option_a AS "optionA",
+        option_b AS "optionB",
+        option_c AS "optionC",
+        option_d AS "optionD",
+        answer,
+        subject,
+        difficulty,
+        explanation
+      FROM questions
+      WHERE ($1='' OR subject=$1)
+      AND ($2='' OR difficulty=$2)
+      ORDER BY id
+      `,
+      [subject,difficulty]
+    );
+
+    res.json(r.rows);
+
+  }catch(e){
+    console.error(e);
+    res.status(500).json({
+      error:"Question loading failed"
+    });
+  }
 });
 
 app.post("/api/questions",auth,admin,async(req,res)=>{
@@ -65,47 +91,3 @@ app.post("/api/questions/bulk",auth,admin,async(req,res)=>{
   const client=await pool.connect();
   try{
     await client.query("begin");
-    for(const q of arr)await client.query(
-      "insert into questions(question,option_a,option_b,option_c,option_d,answer,subject,difficulty,explanation) values($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-      [q.question,q.options[0],q.options[1],q.options[2],q.options[3],q.answer,q.subject||"General",q.difficulty||"Medium",q.explanation||""]
-    );
-    await client.query("commit"); res.json({inserted:arr.length});
-  }catch(e){await client.query("rollback");res.status(400).json({error:"Bulk import failed"});}finally{client.release();}
-});
-
-app.delete("/api/questions/:id",auth,admin,async(req,res)=>{
-  await pool.query("delete from questions where id=$1",[req.params.id]);res.json({ok:true});
-});
-
-app.post("/api/results",auth,async(req,res)=>{
-  const x=req.body;
-  const r=await pool.query(
-    "insert into results(user_id,exam_title,correct,wrong,unanswered,total,raw_score,percentage) values($1,$2,$3,$4,$5,$6,$7,$8) returning *",
-    [req.user.id,x.examTitle,x.correct,x.wrong,x.unanswered,x.total,x.rawScore,x.percentage]
-  );
-  res.json(r.rows[0]);
-});
-
-app.get("/api/leaderboard",auth,async(req,res)=>{
-  const r=await pool.query(`
-    select u.name, max(r.percentage)::numeric as percentage, count(r.id)::int as tests
-    from results r join users u on u.id=r.user_id
-    group by u.id,u.name order by percentage desc, tests desc limit 50
-  `);
-  res.json(r.rows);
-});
-
-app.get("/api/my-results",auth,async(req,res)=>{
-  const r=await pool.query("select * from results where user_id=$1 order by created_at desc limit 100",[req.user.id]);
-  res.json(r.rows);
-});
-
-app.get("/api/admin/stats",auth,admin,async(req,res)=>{
-  const q=await pool.query("select count(*)::int n from questions");
-  const u=await pool.query("select count(*)::int n from users");
-  const t=await pool.query("select count(*)::int n from results");
-  res.json({questions:q.rows[0].n,users:u.rows[0].n,tests:t.rows[0].n});
-});
-
-app.get("/{*splat}", (req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
-app.listen(process.env.PORT||3000,()=>console.log("Online Mock server running"));
